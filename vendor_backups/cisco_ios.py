@@ -1,6 +1,6 @@
-import os
 from netmiko import ConnectHandler
 from datetime import datetime
+from .lib import write_backup
 
 # Current time and formats it to the North American time of Month, Day, and Year.
 now = datetime.now()
@@ -27,16 +27,10 @@ def backup(host, username, password, enable_secret):
         hostname = hostname[1]
     # Gets the running configuration.
     output = net_connect.send_command("show run")
-    
     # Creates the file name, which is the hostname, and the date and time.
     fileName = f"{hostname}_{dt_string}"
     # Creates the text file in the backup-config folder with the special name, and writes to it.
-    backup_file = os.path.join("backup-config", fileName)
-    with open(backup_file, "w") as backupFile:
-        backupFile.write(output)
-        pass
-
-    print(f"Outputted to {len(output)} bytes to {backup_file}")
+    write_backup(fileName, output)
     # For the GUI
     global gui_filename_output
     gui_filename_output = fileName
