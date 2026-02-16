@@ -353,7 +353,7 @@ def backup_cisco_asa():
 def backup_dell_os6():
     """Backup DELL OS6 devices."""
     global _config
-    results = run_script("2", config=_config, interactive=True)
+    results = run_script("8", config=_config, interactive=True)
     typer.echo(f"Dell OS6 backup complete: {results['success']} succeeded")
     show_dry_run_summary()
 
