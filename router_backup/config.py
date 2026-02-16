@@ -1,11 +1,10 @@
 """Configuration management for router-backup."""
 
-import os
-import yaml
 from pathlib import Path
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
 
+import yaml
 
 @dataclass
 class Config:

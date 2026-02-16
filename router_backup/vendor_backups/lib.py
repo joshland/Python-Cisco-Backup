@@ -1,6 +1,5 @@
 """Library functions for vendor backup modules."""
 
-import os
 from typing import Optional
 from router_backup.storage import get_global_storage, write_backup
 

@@ -6,8 +6,6 @@ Uses pygit2 library instead of shell commands for better performance
 and more control over git operations.
 """
 
-import os
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Dict

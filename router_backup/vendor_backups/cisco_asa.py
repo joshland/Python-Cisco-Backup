@@ -1,4 +1,3 @@
-import os
 from netmiko import ConnectHandler
 from .lib import write_backup
 

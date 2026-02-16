@@ -1,7 +1,15 @@
+import os
 from csv import reader
 from datetime import datetime
+
+from tkinter import *
+from tkinter.ttk import *
+from tkinter.filedialog import *
+from tkinter import messagebox
+
 from netmiko import ConnectHandler
 from ping3 import ping, verbose_ping
+
 from router_backup.vendor_backups import (
     cisco_ios,
     cisco_asa,
@@ -12,12 +20,6 @@ from router_backup.vendor_backups import (
     microtik,
     vyos,
 )
-import os
-from tkinter import *
-from tkinter.ttk import *
-from tkinter.filedialog import *
-from tkinter import messagebox
-
 
 # Global variables
 root = None
