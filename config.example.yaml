@@ -1,0 +1,20 @@
+# Router-Backup Configuration File
+# Location: /etc/router-backup/config.yaml
+
+# Path to CSV file containing device list
+# CSV format: ip,username,password[,secret]
+device_file: /etc/router-backup/devices.csv
+
+# Storage configuration
+# Storage path where backups will be saved
+storage: /var/lib/router-backup
+
+# Storage model:
+# - txt: Plain text files (simplest, no version control)
+# - git: Use git for version control (requires git installed)
+# - pygit: Use pygit2 for version control (requires pygit2 library)
+storage_model: txt
+
+# Logging configuration (optional)
+# log_level: INFO
+# log_file: /var/log/router-backup/backup.log
