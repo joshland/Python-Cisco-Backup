@@ -2,11 +2,6 @@ from netmiko import ConnectHandler
 from datetime import datetime
 from .lib import write_backup
 
-# Current time and formats it to the North American time of Month, Day, and Year.
-now = datetime.now()
-dt_string = now.strftime("%m-%d-%Y_%H-%M")
-
-
 # Gives us the information we need to connect to VyOS devices.
 def backup(host, username, password):
     vyos = {
@@ -27,9 +22,7 @@ def backup(host, username, password):
         hostname = hostname.split()
         hostname = hostname[0]
     # Creates the file name, which is the hostname, and the date and time.
-    fileName = hostname + "_" + dt_string
-    # Creates the file name, which is the hostname, and the date and time.
-    fileName = f"{hostname}_{dt_string}"
+    fileName = hostname
     write_backup(fileName, output, host)
     # For the GUI
     global gui_filename_output

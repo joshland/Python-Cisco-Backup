@@ -90,7 +90,9 @@ class BackupStorage:
 
     def _write_txt(self, filename: str, content: str):
         """Write backup as plain text file."""
-        filepath = self.storage_path / f"{filename}.txt"
+        dt_string = datetime.now().strftime("%m-%d-%Y_%H-%M")
+
+        filepath = self.storage_path / f"{filename}_{dt_string}.txt"
         with open(filepath, "w") as f:
             f.write(content)
 
