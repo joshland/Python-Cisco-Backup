@@ -24,19 +24,42 @@ GUI
 
 ## Installation
 
-1. You must have Python3 and PIP installed on the device you are running the program on.
-2. Install required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-   Or manually:
-   ```bash
-   pip install netmiko ping3 typer loguru
-   ```
-3. You need to download this repository or clone it:
-   ```bash
-   git clone https://github.com/AlexMunoz905/Python-Cisco-Backup.git
-   ```
+### Quick Install (Using UV - Recommended)
+
+This project supports [uv](https://docs.astral.sh/uv/), an extremely fast Python package manager:
+
+```bash
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and setup
+git clone https://github.com/AlexMunoz905/Python-Cisco-Backup.git
+cd Python-Cisco-Backup
+uv venv
+source .venv/bin/activate
+uv pip install -e ".[all]"
+```
+
+### Using pip (Alternative)
+
+```bash
+# Clone repository
+git clone https://github.com/AlexMunoz905/Python-Cisco-Backup.git
+cd Python-Cisco-Backup
+
+# Install dependencies
+pip install -r requirements.txt
+# Or manually:
+pip install netmiko ping3 typer loguru
+```
+
+### Requirements
+
+- Python 3.9+
+- Git (for storage_git.py)
+- libgit2 (optional, for storage_pygit.py)
+
+See [INSTALL.md](INSTALL.md) for detailed installation instructions including system dependencies.
 
 ## Usage
 
@@ -44,55 +67,72 @@ GUI
 
 The CLI uses [Typer](https://typer.tiangolo.com/) for a modern, user-friendly command line experience.
 
-#### Basic Usage
+#### Installed Commands (Recommended)
+
+After installing the package, use these commands directly:
 
 ```bash
 # Show help
-python multivendor_run.py --help
+router-backup --help
 
 # Run interactive menu (select vendor interactively)
-python multivendor_run.py
+router-backup
+
+# Using uv (without activating venv)
+uv run router-backup --help
+```
+
+#### Direct Script Usage
+
+You can also run the scripts directly without installing:
+
+```bash
+# Show help
+python router_backup/multivendor_run.py --help
+
+# Run interactive menu
+python router_backup/multivendor_run.py
 ```
 
 #### Vendor-Specific Commands
 
 ```bash
 # Backup Cisco IOS devices
-python multivendor_run.py cisco-ios
+router-backup cisco-ios
 
 # Backup Cisco ASA devices
-python multivendor_run.py cisco-asa
+router-backup cisco-asa
 
 # Backup Juniper devices
-python multivendor_run.py juniper
+router-backup juniper
 
 # Backup VyOS routers
-python multivendor_run.py vyos
+router-backup vyos
 
 # Backup Huawei devices
-python multivendor_run.py huawei
+router-backup huawei
 
 # Backup Fortinet devices
-python multivendor_run.py fortinet
+router-backup fortinet
 
 # Backup Microtik devices
-python multivendor_run.py microtik
+router-backup microtik
 
 # Backup all vendor types
-python multivendor_run.py all
+router-backup all
 ```
 
 #### Global Options
 
 ```bash
 # Use a custom CSV file
-python multivendor_run.py cisco-ios --csv /path/to/custom.csv
+router-backup cisco-ios --csv /path/to/custom.csv
 
 # Enable verbose/debug logging
-python multivendor_run.py cisco-ios --verbose
+router-backup cisco-ios --verbose
 
 # Short options
-python multivendor_run.py cisco-ios -c custom.csv -v
+router-backup cisco-ios -c custom.csv -v
 ```
 
 #### CLI Help
@@ -101,10 +141,10 @@ Each command has its own help:
 
 ```bash
 # General help
-python multivendor_run.py --help
+router-backup --help
 
 # Command-specific help
-python multivendor_run.py cisco-ios --help
+router-backup cisco-ios --help
 ```
 
 ### CSV File Format
@@ -131,9 +171,12 @@ The CSV file should contain the following columns:
 ### GUI (Graphical User Interface)
 
 1. Download & run executable from GitHub releases tab (if available).
-2. Or run the GUI directly:
+2. Or run the GUI directly (after installation):
    ```bash
-   python gui.py
+   router-backup-gui
+   
+   # Or with uv
+   uv run router-backup-gui
    ```
 3. Select the vendor you want to copy the config of.
 4. Select the CSV file from the popup window.

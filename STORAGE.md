@@ -22,6 +22,19 @@ git --version
 ### storage_pygit.py
 Requires the pygit2 library and libgit2 system library.
 
+#### Using UV (Recommended)
+```bash
+# Install pygit2
+uv pip install pygit2
+
+# On Ubuntu/Debian, you may need:
+sudo apt-get install libgit2-dev
+
+# On macOS with Homebrew:
+brew install libgit2
+```
+
+#### Using pip
 ```bash
 # Install pygit2
 pip install pygit2
@@ -283,7 +296,7 @@ old_content = store.read_version(f"{doc_id}.txt", versions[-1]['full_hash'])
 - **Permission denied** - Make script executable: `chmod +x storage_git.py`
 
 ### storage_pygit.py
-- **"No module named 'pygit2'"** - Run `pip install pygit2`
+- **"No module named 'pygit2'"** - Run `uv pip install pygit2` or `pip install pygit2`
 - **"libgit2 not found"** - Install libgit2 system library
 - **Import errors on macOS** - May need to set DYLD_LIBRARY_PATH
 
