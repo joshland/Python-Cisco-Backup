@@ -181,33 +181,50 @@ storagecli -m git init
 ---
 
 ### `write`
-Write a file to storage.
+Write a file to storage. Content can be provided directly or read from a file.
 
 **Arguments:**
 - `filepath` - Path to the file (relative to storage)
 
 **Options:**
-- `-c, --content TEXT` - File content (required)
+- `-c, --content TEXT` - Content to write directly
+- `-f, --file PATH` - Path to file containing content to write
 - `-m, --message TEXT` - Commit message (optional, for git/pygit)
 
+**Note:** You must provide either `--content` or `--file`, but not both.
+
 ```bash
+# Write content directly
 storagecli write config.txt -c "hostname router1" -m "Initial config"
+
+# Write content from a file
+storagecli write config.txt -f /path/to/config.txt -m "Imported config"
+
+# Copy a backup from router-backup
+storagecli write router1.txt -f /var/lib/router-backup/router1_2024-01-15.txt
 ```
 
 ---
 
 ### `update`
-Update an existing file in storage.
+Update an existing file in storage. Content can be provided directly or read from a file.
 
 **Arguments:**
 - `filepath` - Path to the file (relative to storage)
 
 **Options:**
-- `-c, --content TEXT` - New content (required)
+- `-c, --content TEXT` - New content to write directly
+- `-f, --file PATH` - Path to file containing new content
 - `-m, --message TEXT` - Commit message (optional, for git/pygit)
 
+**Note:** You must provide either `--content` or `--file`, but not both.
+
 ```bash
+# Update with direct content
 storagecli update config.txt -c "hostname router2" -m "Changed hostname"
+
+# Update from a file
+storagecli update config.txt -f /path/to/updated-config.txt
 ```
 
 ---

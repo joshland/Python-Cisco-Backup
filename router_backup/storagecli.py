@@ -124,12 +124,17 @@ def init_repo(
 @app.command(name="write")
 def write_file(
     filepath: str = typer.Argument(..., help="Path to the file (relative to storage)"),
-    content: str = typer.Option(..., "--content", "-c", help="Content to write"),
+    content: Optional[str] = typer.Option(
+        None, "--content", "-c", help="Content to write directly"
+    ),
+    file: Optional[str] = typer.Option(
+        None, "--file", "-f", help="Path to file containing content to write"
+    ),
     message: Optional[str] = typer.Option(
         None, "--message", "-m", help="Commit message (for git/pygit storage)"
     ),
 ):
-    """Write a file to storage."""
+    """Write a file to storage. Content can be provided directly (-c) or read from a file (-f)."""
     global _config, _storage
 
     if _config is None:
@@ -138,13 +143,29 @@ def write_file(
     if _storage is None:
         _storage = init_storage(_config)
 
+    # Get content from either --content or --file
+    if content and file:
+        typer.echo("Error: Cannot use both --content and --file options")
+        raise typer.Exit(1)
+    elif content:
+        file_content = content
+    elif file:
+        if not os.path.exists(file):
+            typer.echo(f"Error: File not found: {file}")
+            raise typer.Exit(1)
+        with open(file, "r") as f:
+            file_content = f.read()
+    else:
+        typer.echo("Error: Must provide either --content or --file option")
+        raise typer.Exit(1)
+
     # Use provided message or default
     commit_msg = message or f"Add {filepath}"
 
     # Write the file
     _storage.write_backup(
         filename=filepath.replace(".txt", ""),  # Remove extension if provided
-        content=content,
+        content=file_content,
         device_ip=None,
     )
 
@@ -154,12 +175,17 @@ def write_file(
 @app.command(name="update")
 def update_file(
     filepath: str = typer.Argument(..., help="Path to the file (relative to storage)"),
-    content: str = typer.Option(..., "--content", "-c", help="New content"),
+    content: Optional[str] = typer.Option(
+        None, "--content", "-c", help="New content to write directly"
+    ),
+    file: Optional[str] = typer.Option(
+        None, "--file", "-f", help="Path to file containing new content"
+    ),
     message: Optional[str] = typer.Option(
         None, "--message", "-m", help="Commit message (for git/pygit storage)"
     ),
 ):
-    """Update an existing file in storage."""
+    """Update an existing file in storage. Content can be provided directly (-c) or read from a file (-f)."""
     global _config, _storage
 
     if _config is None:
@@ -168,11 +194,29 @@ def update_file(
     if _storage is None:
         _storage = init_storage(_config)
 
+    # Get content from either --content or --file
+    if content and file:
+        typer.echo("Error: Cannot use both --content and --file options")
+        raise typer.Exit(1)
+    elif content:
+        file_content = content
+    elif file:
+        if not os.path.exists(file):
+            typer.echo(f"Error: File not found: {file}")
+            raise typer.Exit(1)
+        with open(file, "r") as f:
+            file_content = f.read()
+    else:
+        typer.echo("Error: Must provide either --content or --file option")
+        raise typer.Exit(1)
+
     # Use provided message or default
     commit_msg = message or f"Update {filepath}"
 
     # Update the file
-    _storage.write_backup(filename=filepath.replace(".txt", ""), content=content, device_ip=None)
+    _storage.write_backup(
+        filename=filepath.replace(".txt", ""), content=file_content, device_ip=None
+    )
 
     typer.echo(f"Updated {filepath}")
 
