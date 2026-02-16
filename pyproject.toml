@@ -28,6 +28,7 @@ dependencies = [
     "ping3>=4.0.0",
     "typer>=0.9.0",
     "loguru>=0.7.0",
+    "pyyaml>=6.0.0",
 ]
 
 [project.optional-dependencies]
@@ -46,8 +47,7 @@ all = [
 [project.scripts]
 router-backup = "router_backup.cli:main"
 router-backup-gui = "router_backup.gui:main"
-storage-git = "router_backup.storage_git:main"
-storage-pygit = "router_backup.storage_pygit:main"
+storagecli = "router_backup.storagecli:main"
 
 [project.urls]
 Homepage = "https://github.com/anomalyco/Python-Cisco-Backup"

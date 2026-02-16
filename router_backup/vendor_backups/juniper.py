@@ -1,17 +1,23 @@
 from netmiko import ConnectHandler
 from datetime import datetime
+from .lib import write_backup
 
 # Current time and formats it to the North American time of Month, Day, and Year.
 now = datetime.now()
 dt_string = now.strftime("%m-%d-%Y_%H-%M")
 
+
 # Gives us the information we need to connect to Juniper devices.
-def backup(host, username, password,):
+def backup(
+    host,
+    username,
+    password,
+):
     juniper = {
-        'device_type': 'juniper',
-        'host': host,
-        'username': username,
-        'password': password,
+        "device_type": "juniper",
+        "host": host,
+        "username": username,
+        "password": password,
     }
     # Creates the connection to the device.
     net_connect = ConnectHandler(**juniper)
@@ -19,7 +25,7 @@ def backup(host, username, password,):
     # Gets the running configuration.
     output = net_connect.send_command("show conf | display set")
     # Gets and splits the hostname for the output file name.
-    hostname = net_connect.find_prompt().replace('#','').replace('>','')
+    hostname = net_connect.find_prompt().replace("#", "").replace(">", "")
     if not hostname:
         hostname = net_connect.send_command("show ver | match hostname")
         hostname = hostname.split()
@@ -27,7 +33,7 @@ def backup(host, username, password,):
     # Creates the file name, which is the hostname, and the date and time.
     fileName = hostname + "_" + dt_string
     # Creates the text file in the backup-config folder with the special name, and writes to it.
-    write_backup(fileName, output)
+    write_backup(fileName, output, host)
     # For the GUI
     global gui_filename_output
     gui_filename_output = fileName

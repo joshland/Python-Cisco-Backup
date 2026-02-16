@@ -63,35 +63,50 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions including sy
 
 ## Usage
 
+### Configuration
+
+Router-backup uses a YAML configuration file to define storage settings and device lists.
+
+#### Initialize Configuration
+
+```bash
+# Create default config at /etc/router-backup/config.yaml
+router-backup init-config
+
+# Create config at custom location
+router-backup init-config -p /path/to/config.yaml
+```
+
+#### Configuration File Format
+
+```yaml
+# /etc/router-backup/config.yaml
+device_file: /etc/router-backup/devices.csv
+storage: /var/lib/router-backup
+storage_model: txt  # Options: txt, git, pygit
+```
+
 ### CLI (Command Line Interface)
 
 The CLI uses [Typer](https://typer.tiangolo.com/) for a modern, user-friendly command line experience.
 
-#### Installed Commands (Recommended)
-
-After installing the package, use these commands directly:
+#### Global Options
 
 ```bash
-# Show help
-router-backup --help
+# Specify config file (default: /etc/router-backup/config.yaml)
+router-backup -c /path/to/config.yaml cisco-ios
 
-# Run interactive menu (select vendor interactively)
-router-backup
+# Specify devices CSV file (overrides config)
+router-backup -d /path/to/devices.csv cisco-ios
 
-# Using uv (without activating venv)
-uv run router-backup --help
-```
+# Specify storage model: txt, git, or pygit (overrides config)
+router-backup -s git cisco-ios
 
-#### Direct Script Usage
+# Enable verbose logging
+router-backup -v cisco-ios
 
-You can also run the scripts directly without installing:
-
-```bash
-# Show help
-python router_backup/multivendor_run.py --help
-
-# Run interactive menu
-python router_backup/multivendor_run.py
+# Combine options
+router-backup -c config.yaml -d devices.csv -s pygit cisco-ios
 ```
 
 #### Vendor-Specific Commands
@@ -120,31 +135,41 @@ router-backup microtik
 
 # Backup all vendor types
 router-backup all
+
+# Interactive mode (no command specified)
+router-backup
 ```
 
-#### Global Options
+#### Storage Models
+
+- **txt** (default): Plain text files - Simple, no dependencies
+- **git**: Git version control - Requires git installed, tracks all changes
+- **pygit**: Native git via pygit2 - Requires pygit2 library, faster than git CLI
 
 ```bash
-# Use a custom CSV file
-router-backup cisco-ios --csv /path/to/custom.csv
+# Use plain text files
+router-backup -s txt cisco-ios
 
-# Enable verbose/debug logging
-router-backup cisco-ios --verbose
+# Use git for version control
+router-backup -s git cisco-ios
 
-# Short options
-router-backup cisco-ios -c custom.csv -v
+# Use pygit2 for version control
+router-backup -s pygit cisco-ios
 ```
 
-#### CLI Help
+#### Direct Script Usage
 
-Each command has its own help:
+You can also run the scripts directly without installing:
 
 ```bash
-# General help
-router-backup --help
+# Show help
+python router_backup/multivendor_run.py --help
 
-# Command-specific help
-router-backup cisco-ios --help
+# Run with options
+python router_backup/multivendor_run.py -c config.yaml -d devices.csv cisco-ios
+
+# Run interactive menu
+python router_backup/multivendor_run.py
 ```
 
 ### CSV File Format

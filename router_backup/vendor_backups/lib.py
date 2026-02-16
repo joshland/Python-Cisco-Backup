@@ -1,11 +1,9 @@
+"""Library functions for vendor backup modules."""
+
 import os
+from typing import Optional
+from router_backup.storage import get_global_storage, write_backup
 
-def write_backup(fileName: str, output: str):
-    # Creates the text file in the backup-config folder with the special name, and writes to it.
-    backup_file = os.path.join("backup-config", f"{fileName}.txt")
-    with open(backup_file, "w") as backupFile:
-        backupFile.write(output)
-        pass
 
-    print(f"Outputted to {len(output)} bytes to {backup_file}")
-
+# Re-export write_backup for backward compatibility
+__all__ = ["write_backup"]
