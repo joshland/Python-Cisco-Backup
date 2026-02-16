@@ -35,7 +35,7 @@ VENDOR_MAP = {
     "5": (huawei, False),
     "6": (fortinet, False),
     "7": (microtik, False),
-    "8": (dell_os6, False),
+    "8": (dell_os6, True),
 }
 
 # Vendor names for display
