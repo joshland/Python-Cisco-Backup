@@ -26,6 +26,7 @@ app = typer.Typer(help="Storage CLI for router-backup git storage")
 # Global config and storage
 _config: Optional[Config] = None
 _storage: Optional[BackupStorage] = None
+_dry_run: bool = False
 
 
 def load_config(config_file: Optional[str] = None) -> Config:
@@ -47,13 +48,14 @@ def load_config(config_file: Optional[str] = None) -> Config:
 
 def init_storage(config: Config) -> BackupStorage:
     """Initialize storage backend."""
-    global _storage
+    global _storage, _dry_run
 
     _storage = BackupStorage(
         storage_path=config.storage,
         storage_model=config.storage_model,
         hostname="storagecli",
         timestamp="",
+        dry_run=_dry_run,
     )
 
     set_global_storage(_storage)
@@ -76,9 +78,14 @@ def callback(
         None, "--model", "-m", help="Storage model: txt, git, or pygit (overrides config)"
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    dry_run: bool = typer.Option(
+        False, "--dryrun", "-n", help="Simulate operations without writing files"
+    ),
 ):
     """Storage CLI for managing configuration backups with version control."""
-    global _config
+    global _config, _dry_run
+
+    _dry_run = dry_run
 
     # Setup logging
     if verbose:
@@ -95,17 +102,30 @@ def callback(
         _config.storage_model = model
 
 
+def show_dry_run_summary():
+    """Show dry-run summary if in dry-run mode."""
+    global _storage
+    if _storage and _storage.dry_run:
+        summary = _storage.get_dry_run_summary()
+        if summary:
+            typer.echo(summary)
+
+
 @app.command(name="init")
 def init_repo(
     force: bool = typer.Option(False, "--force", "-f", help="Force reinitialize if already exists"),
 ):
     """Initialize the storage repository."""
-    global _config
+    global _config, _dry_run
 
     if _config is None:
         _config = load_config()
 
     storage_path = Path(_config.storage)
+
+    if _dry_run:
+        typer.echo(f"[DRY-RUN] Would initialize {_config.storage_model} storage at {storage_path}")
+        return
 
     # Check if already initialized
     if _config.storage_model in ["git", "pygit"]:
@@ -169,7 +189,11 @@ def write_file(
         device_ip=None,
     )
 
-    typer.echo(f"Written {filepath}")
+    # Show dry-run summary if applicable
+    show_dry_run_summary()
+
+    if not _storage.dry_run:
+        typer.echo(f"Written {filepath}")
 
 
 @app.command(name="update")
@@ -218,7 +242,11 @@ def update_file(
         filename=filepath.replace(".txt", ""), content=file_content, device_ip=None
     )
 
-    typer.echo(f"Updated {filepath}")
+    # Show dry-run summary if applicable
+    show_dry_run_summary()
+
+    if not _storage.dry_run:
+        typer.echo(f"Updated {filepath}")
 
 
 @app.command(name="versions")

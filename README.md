@@ -157,6 +157,27 @@ router-backup -s git cisco-ios
 router-backup -s pygit cisco-ios
 ```
 
+#### Dry-Run Mode
+
+Use `--dryrun` or `-n` to simulate backup operations without writing files:
+
+```bash
+# Preview what would be backed up
+router-backup --dryrun cisco-ios
+
+# Show total size and files that would be created
+router-backup -n -s git cisco-ios
+
+# Combine with other options
+router-backup -c config.yaml -d devices.csv -n all
+```
+
+In dry-run mode, the tool will:
+- Log all operations that would be performed
+- Show total number of files that would be created
+- Show total size of data that would be written
+- Not actually connect to devices or write files
+
 #### Direct Script Usage
 
 You can also run the scripts directly without installing:

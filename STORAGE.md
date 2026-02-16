@@ -69,8 +69,35 @@ storagecli -s /var/backups/storage write config.txt -c "hostname router1"
 # Override storage model
 storagecli -m pygit init
 
+# Dry-run mode (simulate without writing)
+storagecli --dryrun write config.txt -f /path/to/config.txt
+storagecli -n write config.txt -c "test content"
+
 # Combine options
-storagecli -c config.yaml -m git -s /var/backups versions config.txt
+storagecli -c config.yaml -m git -s /var/backups -n versions config.txt
+```
+
+### Dry-Run Mode
+
+Use `--dryrun` or `-n` to simulate operations without actually writing files:
+
+```bash
+# Preview what would be written
+storagecli --dryrun write config.txt -f /path/to/large-config.txt
+
+# Output shows:
+# [DRY-RUN] Would write 15432 bytes to /var/lib/router-backup/config_02-15-2025.txt
+# 
+# ====================================================================== 
+# DRY RUN SUMMARY
+# ====================================================================== 
+# Total files: 1
+# Total size: 15.07 KB
+# 
+# Operations that would be performed:
+# ---------------------------------------------------------------------- 
+#   [WRITE] /var/lib/router-backup/config_02-15-2025.txt (15432 bytes)
+# ====================================================================== 
 ```
 
 ---

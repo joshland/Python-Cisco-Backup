@@ -50,6 +50,7 @@ VENDOR_NAMES = {
 # Global config and storage
 _config: Optional[Config] = None
 _storage: Optional[BackupStorage] = None
+_dry_run: bool = False
 
 
 def setup_logging(log_level: str = "INFO", log_file: Optional[str] = None):
@@ -109,7 +110,7 @@ def load_config(
 
 def init_storage(config: Config, hostname: str = "backup") -> BackupStorage:
     """Initialize storage backend."""
-    global _storage
+    global _storage, _dry_run
 
     timestamp = get_timestamp()
     _storage = BackupStorage(
@@ -117,12 +118,18 @@ def init_storage(config: Config, hostname: str = "backup") -> BackupStorage:
         storage_model=config.storage_model,
         hostname=hostname,
         timestamp=timestamp,
+        dry_run=_dry_run,
     )
 
     # Set global storage for vendor modules
     set_global_storage(_storage)
 
-    logger.info(f"Initialized {config.storage_model} storage at {config.storage}")
+    if _dry_run:
+        logger.info(
+            f"[DRY-RUN] Would initialize {config.storage_model} storage at {config.storage}"
+        )
+    else:
+        logger.info(f"Initialized {config.storage_model} storage at {config.storage}")
     return _storage
 
 
@@ -266,10 +273,14 @@ def main(
         None, "--storage", "-s", help="Storage model: txt, git, or pygit (overrides config)"
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    dry_run: bool = typer.Option(
+        False, "--dryrun", "-n", help="Simulate backup without writing files"
+    ),
 ):
     """Network device backup tool supporting multiple vendors."""
     # Load configuration
-    global _config
+    global _config, _dry_run
+    _dry_run = dry_run
     _config = load_config(
         config_file=config,
         devices_file=devices,
@@ -281,11 +292,24 @@ def main(
     log_file = _config.log_file or os.path.join(_config.storage, "backup.log")
     setup_logging(log_level, log_file)
 
-    # Ensure directories exist
-    _config.ensure_directories()
+    # Ensure directories exist (unless dry-run)
+    if not _dry_run:
+        _config.ensure_directories()
 
     if verbose:
         logger.debug("Verbose logging enabled")
+
+    if _dry_run:
+        logger.info("DRY-RUN MODE: No files will be written")
+
+
+def show_dry_run_summary():
+    """Show dry-run summary if in dry-run mode."""
+    global _storage
+    if _storage and _storage.dry_run:
+        summary = _storage.get_dry_run_summary()
+        if summary:
+            typer.echo(summary)
 
 
 @app.command(name="all")
@@ -301,6 +325,8 @@ def backup_all():
         except Exception as e:
             logger.error(f"Error backing up {VENDOR_NAMES[selection]}: {e}")
 
+    show_dry_run_summary()
+
 
 @app.command(name="cisco-ios")
 def backup_cisco_ios():
@@ -308,6 +334,7 @@ def backup_cisco_ios():
     global _config
     results = run_script("1", config=_config, interactive=True)
     typer.echo(f"Cisco IOS backup complete: {results['success']} succeeded")
+    show_dry_run_summary()
 
 
 @app.command(name="cisco-asa")
@@ -316,6 +343,7 @@ def backup_cisco_asa():
     global _config
     results = run_script("2", config=_config, interactive=True)
     typer.echo(f"Cisco ASA backup complete: {results['success']} succeeded")
+    show_dry_run_summary()
 
 
 @app.command(name="juniper")
@@ -324,6 +352,7 @@ def backup_juniper():
     global _config
     results = run_script("3", config=_config, interactive=True)
     typer.echo(f"Juniper backup complete: {results['success']} succeeded")
+    show_dry_run_summary()
 
 
 @app.command(name="vyos")
@@ -332,6 +361,7 @@ def backup_vyos():
     global _config
     results = run_script("4", config=_config, interactive=True)
     typer.echo(f"VyOS backup complete: {results['success']} succeeded")
+    show_dry_run_summary()
 
 
 @app.command(name="huawei")
@@ -340,6 +370,7 @@ def backup_huawei():
     global _config
     results = run_script("5", config=_config, interactive=True)
     typer.echo(f"Huawei backup complete: {results['success']} succeeded")
+    show_dry_run_summary()
 
 
 @app.command(name="fortinet")
@@ -348,6 +379,7 @@ def backup_fortinet():
     global _config
     results = run_script("6", config=_config, interactive=True)
     typer.echo(f"Fortinet backup complete: {results['success']} succeeded")
+    show_dry_run_summary()
 
 
 @app.command(name="microtik")
@@ -356,6 +388,7 @@ def backup_microtik():
     global _config
     results = run_script("7", config=_config, interactive=True)
     typer.echo(f"Microtik backup complete: {results['success']} succeeded")
+    show_dry_run_summary()
 
 
 @app.command(name="init-config")
@@ -386,16 +419,19 @@ def init_config(
 # Interactive menu (for backward compatibility when run directly)
 def interactive_menu():
     """Show interactive menu for vendor selection."""
-    global _config
+    global _config, _dry_run
 
     # Ensure we have a config
     if _config is None:
         _config = load_config()
         setup_logging(_config.log_level, _config.log_file)
-        _config.ensure_directories()
+        if not _dry_run:
+            _config.ensure_directories()
 
     print("\nMulti-Vendor Network Backup Tool")
     print("=" * 40)
+    if _dry_run:
+        print("*** DRY-RUN MODE: No files will be written ***")
     print(
         f"Config: device_file={_config.device_file}, storage={_config.storage}, model={_config.storage_model}"
     )
@@ -414,6 +450,7 @@ def interactive_menu():
             print(f"  Success: {results['success']}")
             print(f"  Failed: {results['failed']}")
             print(f"  Down: {results['down']}")
+            show_dry_run_summary()
         except Exception as e:
             logger.error(f"Backup failed: {e}")
             print(f"Error: {e}")
