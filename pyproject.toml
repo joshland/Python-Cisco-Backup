@@ -1,0 +1,97 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "router-backup"
+version = "1.0.0"
+description = "Multi-vendor network device backup tool with git-based storage"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Router Backup Team"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Networking",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "netmiko>=4.0.0",
+    "ping3>=4.0.0",
+    "typer>=0.9.0",
+    "loguru>=0.7.0",
+]
+
+[project.optional-dependencies]
+gui = [
+    "tk",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pygit2>=1.12.0",
+]
+all = [
+    "pygit2>=1.12.0",
+]
+
+[project.scripts]
+router-backup = "router_backup.cli:main"
+router-backup-gui = "router_backup.gui:main"
+storage-git = "router_backup.storage_git:main"
+storage-pygit = "router_backup.storage_pygit:main"
+
+[project.urls]
+Homepage = "https://github.com/anomalyco/Python-Cisco-Backup"
+Repository = "https://github.com/anomalyco/Python-Cisco-Backup"
+
+[tool.hatch.build.targets.wheel]
+packages = ["router_backup"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "network: marks tests that require network access",
+]
+
+[tool.coverage.run]
+source = ["router_backup"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
