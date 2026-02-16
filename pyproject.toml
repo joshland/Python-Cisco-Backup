@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "router-backup"
-version = "1.0.1"
+version = "1.0.2"
 description = "Multi-vendor network device backup tool with git-based storage"
 readme = "README.md"
 license = {text = "MIT"}
