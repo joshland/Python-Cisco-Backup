@@ -1,5 +1,4 @@
 from netmiko import ConnectHandler
-from datetime import datetime
 from .lib import write_backup
 
 # Gives us the information we need to connect to Cisco devices.

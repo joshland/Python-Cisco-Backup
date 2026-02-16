@@ -11,6 +11,7 @@ from ping3 import ping
 from router_backup.vendor_backups import (
     cisco_ios,
     cisco_asa,
+    dell_os6,
     fortinet,
     huawei,
     juniper,
@@ -34,6 +35,7 @@ VENDOR_MAP = {
     "5": (huawei, False),
     "6": (fortinet, False),
     "7": (microtik, False),
+    "8": (dell_os6, False),
 }
 
 # Vendor names for display
@@ -45,6 +47,7 @@ VENDOR_NAMES = {
     "5": "Huawei",
     "6": "Fortinet",
     "7": "Microtik",
+    "8": "Dell OS6",
 }
 
 # Global config and storage
@@ -343,6 +346,15 @@ def backup_cisco_asa():
     global _config
     results = run_script("2", config=_config, interactive=True)
     typer.echo(f"Cisco ASA backup complete: {results['success']} succeeded")
+    show_dry_run_summary()
+
+
+@app.command(name="dell-os6")
+def backup_dell_os6():
+    """Backup DELL OS6 devices."""
+    global _config
+    results = run_script("2", config=_config, interactive=True)
+    typer.echo(f"Dell OS6 backup complete: {results['success']} succeeded")
     show_dry_run_summary()
 
 

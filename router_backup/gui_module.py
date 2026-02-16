@@ -5,6 +5,7 @@ from ping3 import ping, verbose_ping
 from router_backup.vendor_backups import (
     cisco_ios,
     cisco_asa,
+    delL_os6,
     fortinet,
     huawei,
     juniper,
