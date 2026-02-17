@@ -54,7 +54,7 @@ def run_script(user_selection):
                 elif user_selection == "7":
                     microtik.backup(list_of_rows[rows][0], list_of_rows[rows][1], list_of_rows[rows][2])
                 elif user_selection == "8":
-                    dell_os6.backup(list_of_rows[rows][0], list_of_rows[rows][1], list_of_rows[rows][2])
+                    dell_os6.backup(list_of_rows[rows][0], list_of_rows[rows][1], list_of_rows[rows][2], list_of_rows[rows][3])
 
 # Asks the user what option they are going to use.
 print("\n1. Backup Cisco IOS devices.")

@@ -25,7 +25,7 @@ def backup(host, username, password, enable_secret):
     output = net_connect.send_command("show run")
     #
     # Creates the text file in the backup-config folder with the special name, and writes to it.
-    fileName = write_backup(hostname, output, host)
+    fileName = write_backup(hostname, output)
     # For the GUI
     global gui_filename_output
     gui_filename_output = fileName
