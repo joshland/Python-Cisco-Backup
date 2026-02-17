@@ -272,25 +272,17 @@ class StoragePyGit:
                 # Diff commit1 with current working directory
                 diff = self.repo.diff(c1)
 
-            # Filter for our file
-            output = []
+            # Filter for our file and return patch text
+            patch_output = []
             for delta in diff.deltas:
                 if delta.new_file.path == filepath or delta.old_file.path == filepath:
-                    output.append(f"diff --git a/{delta.old_file.path} b/{delta.new_file.path}")
-                    output.append(f"--- a/{delta.old_file.path}")
-                    output.append(f"+++ b/{delta.new_file.path}")
+                    # Get the patch text from the diff's patch property
+                    # which returns the full unified diff format
+                    if diff.patch:
+                        patch_output.append(diff.patch)
+                        break
 
-                    for hunk in diff.hunks:
-                        output.append(
-                            f"@@ -{hunk.old_start},{hunk.old_lines} +{hunk.new_start},{hunk.new_lines} @@"
-                        )
-                        for line in hunk.lines:
-                            prefix = (
-                                "+" if line.origin == "+" else "-" if line.origin == "-" else " "
-                            )
-                            output.append(f"{prefix}{line.content}")
-
-            return "\n".join(output) if output else "No differences found."
+            return "\n".join(patch_output) if patch_output else "No differences found."
         except pygit2.GitError as e:
             return f"Error: {e}"
 
