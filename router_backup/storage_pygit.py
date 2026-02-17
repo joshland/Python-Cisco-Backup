@@ -75,9 +75,7 @@ class StoragePyGit:
 
         return pygit2.Signature(name, email, int(datetime.now().timestamp()))
 
-    def write_file(
-        self, filepath: str, content: str, commit_msg: Optional[str] = None
-    ) -> bool:
+    def write_file(self, filepath: str, content: str, commit_msg: Optional[str] = None) -> bool:
         """Write a file and commit it to the repository."""
         if not self.is_initialized():
             print("Repository not initialized. Run init() first.")
@@ -144,11 +142,29 @@ class StoragePyGit:
             print(f"Failed to commit: {e}")
             return False
 
-    def update_file(
-        self, filepath: str, content: str, commit_msg: Optional[str] = None
-    ) -> bool:
+    def update_file(self, filepath: str, content: str, commit_msg: Optional[str] = None) -> bool:
         """Update a file and commit the changes."""
         return self.write_file(filepath, content, commit_msg or f"Update {filepath}")
+
+    def _resolve_hash(self, short_hash: str) -> Optional[str]:
+        """Resolve a short hash to a full hash by searching commits."""
+        if not self.is_initialized():
+            return None
+
+        try:
+            # If it's already a full hash (40 chars), return it
+            if len(short_hash) == 40:
+                return short_hash
+
+            # Walk through all commits to find matching short hash
+            for commit in self.repo.walk(self.repo.head.target, pygit2.GIT_SORT_TIME):
+                full_hash = str(commit.id)
+                if full_hash.startswith(short_hash):
+                    return full_hash
+        except pygit2.GitError:
+            pass
+
+        return None
 
     def list_versions(self, filepath: str) -> List[Dict]:
         """List all versions of a file with their commit info."""
@@ -170,9 +186,9 @@ class StoragePyGit:
                             {
                                 "hash": str(commit.id)[:8],
                                 "full_hash": str(commit.id),
-                                "date": datetime.fromtimestamp(
-                                    commit.commit_time
-                                ).strftime("%Y-%m-%d %H:%M:%S"),
+                                "date": datetime.fromtimestamp(commit.commit_time).strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                ),
                                 "message": commit.message.strip(),
                             }
                         )
@@ -184,17 +200,14 @@ class StoragePyGit:
                     diff = self.repo.diff(parent, commit)
 
                     for delta in diff.deltas:
-                        if (
-                            delta.new_file.path == filepath
-                            or delta.old_file.path == filepath
-                        ):
+                        if delta.new_file.path == filepath or delta.old_file.path == filepath:
                             versions.append(
                                 {
                                     "hash": str(commit.id)[:8],
                                     "full_hash": str(commit.id),
-                                    "date": datetime.fromtimestamp(
-                                        commit.commit_time
-                                    ).strftime("%Y-%m-%d %H:%M:%S"),
+                                    "date": datetime.fromtimestamp(commit.commit_time).strftime(
+                                        "%Y-%m-%d %H:%M:%S"
+                                    ),
                                     "message": commit.message.strip(),
                                 }
                             )
@@ -211,7 +224,13 @@ class StoragePyGit:
             return None
 
         try:
-            commit = self.repo.get(pygit2.Oid(hex=commit_hash))
+            # Resolve short hash to full hash
+            full_hash = self._resolve_hash(commit_hash)
+            if full_hash is None:
+                print(f"Commit {commit_hash} not found")
+                return None
+
+            commit = self.repo.get(pygit2.Oid(hex=full_hash))
             if commit is None:
                 print(f"Commit {commit_hash} not found")
                 return None
@@ -223,9 +242,7 @@ class StoragePyGit:
             print(f"Error reading version: {e}")
             return None
 
-    def diff_versions(
-        self, filepath: str, commit1: str, commit2: Optional[str] = None
-    ) -> str:
+    def diff_versions(self, filepath: str, commit1: str, commit2: Optional[str] = None) -> str:
         """
         Show diff between two versions of a file.
         If commit2 is None, compares commit1 with current version.
@@ -234,12 +251,20 @@ class StoragePyGit:
             return "Repository not initialized."
 
         try:
-            c1 = self.repo.get(pygit2.Oid(hex=commit1))
+            # Resolve short hashes to full hashes
+            full_hash1 = self._resolve_hash(commit1)
+            if full_hash1 is None:
+                return f"Commit {commit1} not found"
+
+            c1 = self.repo.get(pygit2.Oid(hex=full_hash1))
             if c1 is None:
                 return f"Commit {commit1} not found"
 
             if commit2:
-                c2 = self.repo.get(pygit2.Oid(hex=commit2))
+                full_hash2 = self._resolve_hash(commit2)
+                if full_hash2 is None:
+                    return f"Commit {commit2} not found"
+                c2 = self.repo.get(pygit2.Oid(hex=full_hash2))
                 if c2 is None:
                     return f"Commit {commit2} not found"
                 diff = self.repo.diff(c1, c2)
@@ -251,9 +276,7 @@ class StoragePyGit:
             output = []
             for delta in diff.deltas:
                 if delta.new_file.path == filepath or delta.old_file.path == filepath:
-                    output.append(
-                        f"diff --git a/{delta.old_file.path} b/{delta.new_file.path}"
-                    )
+                    output.append(f"diff --git a/{delta.old_file.path} b/{delta.new_file.path}")
                     output.append(f"--- a/{delta.old_file.path}")
                     output.append(f"+++ b/{delta.new_file.path}")
 
@@ -263,11 +286,7 @@ class StoragePyGit:
                         )
                         for line in hunk.lines:
                             prefix = (
-                                "+"
-                                if line.origin == "+"
-                                else "-"
-                                if line.origin == "-"
-                                else " "
+                                "+" if line.origin == "+" else "-" if line.origin == "-" else " "
                             )
                             output.append(f"{prefix}{line.content}")
 
@@ -281,7 +300,12 @@ class StoragePyGit:
             return "Repository not initialized."
 
         try:
-            commit = self.repo.get(pygit2.Oid(hex=commit_hash))
+            # Resolve short hash to full hash
+            full_hash = self._resolve_hash(commit_hash)
+            if full_hash is None:
+                return f"Commit {commit_hash} not found"
+
+            commit = self.repo.get(pygit2.Oid(hex=full_hash))
             if commit is None:
                 return f"Commit {commit_hash} not found"
 
