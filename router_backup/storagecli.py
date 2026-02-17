@@ -374,6 +374,136 @@ def show_status():
         typer.echo(status)
 
 
+@app.command(name="list")
+def list_configs(
+    pattern: str = typer.Argument("*.txt", help="File pattern to match (default: *.txt)"),
+):
+    """List all configuration files in storage."""
+    global _config
+
+    if _config is None:
+        _config = load_config()
+
+    storage_path = Path(_config.storage)
+
+    if not storage_path.exists():
+        typer.echo(f"Storage directory not found: {storage_path}")
+        raise typer.Exit(1)
+
+    # Find all matching files
+    files = list(storage_path.glob(pattern))
+
+    if not files:
+        typer.echo(f"No files matching '{pattern}' found in {storage_path}")
+        return
+
+    typer.echo(f"\nConfiguration files in {storage_path}:")
+    typer.echo("-" * 80)
+
+    total_size = 0
+    for f in sorted(files):
+        if f.is_file():
+            size = f.stat().st_size
+            total_size += size
+            size_str = f"{size:,} bytes"
+            typer.echo(f"  {f.name:<50} {size_str:>15}")
+
+    typer.echo("-" * 80)
+    typer.echo(f"Total: {len(files)} files, {total_size:,} bytes ({total_size / 1024:.2f} KB)")
+
+
+@app.command(name="devices")
+def list_devices():
+    """List all devices (unique hostnames) that have been backed up."""
+    global _config
+
+    if _config is None:
+        _config = load_config()
+
+    storage_path = Path(_config.storage)
+
+    if not storage_path.exists():
+        typer.echo(f"Storage directory not found: {storage_path}")
+        raise typer.Exit(1)
+
+    # Find all .txt files and extract device names
+    txt_files = list(storage_path.glob("*.txt"))
+
+    if not txt_files:
+        typer.echo(f"No backup files found in {storage_path}")
+        return
+
+    # Extract unique device names (everything before the timestamp)
+    import re
+
+    devices = {}
+
+    # For git/pygit storage, get version counts from git history
+    if _config.storage_model in ["git", "pygit"]:
+        # Initialize storage to access git functions
+        if _storage is None:
+            init_storage(_config)
+
+    for f in txt_files:
+        if f.is_file():
+            # Parse filename like: router1-config_02-15-2024_14-30.txt
+            # or: router1_02-15-2024_14-30.txt (for txt storage)
+            # or: router1-config.txt (for git storage)
+            name = f.stem  # Get filename without extension
+
+            # Pattern to match timestamp: _MM-DD-YYYY_HH-MM at the end
+            timestamp_pattern = r"_(\d{2}-\d{2}-\d{4})_(\d{2}-\d{2})$"
+            match = re.search(timestamp_pattern, name)
+
+            if match:
+                # Remove the timestamp from the end (txt storage)
+                device_name = name[: match.start()]
+            else:
+                # No timestamp found, use whole name (git storage)
+                device_name = name
+
+            if device_name not in devices:
+                devices[device_name] = {"count": 0, "files": [], "total_size": 0}
+
+            size = f.stat().st_size
+            devices[device_name]["files"].append(f.name)
+            devices[device_name]["total_size"] += size
+
+            # For git/pygit storage, count versions from git history
+            if _config.storage_model in ["git", "pygit"] and _storage:
+                versions = _storage.get_versions(device_name)
+                devices[device_name]["count"] = len(versions) if versions else 1
+            else:
+                # For txt storage, count files
+                devices[device_name]["count"] += 1
+
+    if not devices:
+        typer.echo("No devices found")
+        return
+
+    typer.echo(f"\nDevices backed up in {storage_path}:")
+    typer.echo("-" * 80)
+    typer.echo(f"{'Device Name':<30} {'Backups':<10} {'Total Size':<15}")
+    typer.echo("-" * 80)
+
+    total_backups = 0
+    total_size = 0
+
+    for device_name in sorted(devices.keys()):
+        info = devices[device_name]
+        count = info["count"]
+        size = info["total_size"]
+        total_backups += count
+        total_size += size
+
+        size_str = f"{size:,} bytes" if size < 1024 else f"{size / 1024:.2f} KB"
+        typer.echo(f"{device_name:<30} {count:<10} {size_str:<15}")
+
+    typer.echo("-" * 80)
+    size_total_str = f"{total_size:,} bytes" if total_size < 1024 else f"{total_size / 1024:.2f} KB"
+    typer.echo(f"Total: {len(devices)} devices, {total_backups} backups, {size_total_str}")
+
+
 @app.command(name="init-config")
 def init_config(
     path: Optional[str] = typer.Option(

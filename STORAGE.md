@@ -55,6 +55,13 @@ storagecli read config.txt abc1234
 
 # Check repository status
 storagecli status
+
+# List all configuration files
+storagecli list
+storagecli list router*.txt
+
+# List all devices with backup counts
+storagecli devices
 ```
 
 ### Storage CLI Options
@@ -321,6 +328,59 @@ Show repository status (git/pygit only).
 ```bash
 storagecli status
 ```
+
+---
+
+### `list`
+List all configuration files in storage.
+
+**Arguments:**
+- `pattern` - File pattern to match (default: *.txt)
+
+```bash
+# List all .txt files
+storagecli list
+
+# List files matching a pattern
+storagecli list router*.txt
+storagecli list *.json
+```
+
+**Output:**
+```
+Configuration files in /var/lib/router-backup:
+--------------------------------------------------------------------------------
+  router1_02-15-2024_10-30.txt                     1,234 bytes
+  router1_02-15-2024_14-45.txt                     1,256 bytes
+  router2_02-15-2024_10-30.txt                       892 bytes
+--------------------------------------------------------------------------------
+Total: 3 files, 3,382 bytes (3.30 KB)
+```
+
+---
+
+### `devices`
+List all devices (unique hostnames) that have been backed up.
+
+Shows aggregated statistics per device including total number of backups and cumulative size.
+
+```bash
+storagecli devices
+```
+
+**Output:**
+```
+Devices backed up in /var/lib/router-backup:
+--------------------------------------------------------------------------------
+Device Name                    Backups    Total Size
+--------------------------------------------------------------------------------
+router1                            2      2.44 KB
+router2                            1      892 bytes
+--------------------------------------------------------------------------------
+Total: 2 devices, 3 backups, 3.30 KB
+```
+
+For git/pygit storage, the backup count shows the number of versions/commits per device.
 
 ---
 
